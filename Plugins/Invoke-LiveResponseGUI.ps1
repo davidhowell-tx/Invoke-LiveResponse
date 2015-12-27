@@ -37,7 +37,7 @@ function OptionsMenu {
 	# Options Form
 	$OptionsForm = New-Object System.Windows.Forms.Form
 	$OptionsForm.FormBorderStyle = "FixedDialog"
-	$OptionsForm.Size = "310,150"
+	$OptionsForm.Size = "310,170"
 	$OptionsForm.Text = "Invoke-LiveResponse Options"
 	$OptionsForm.Font = $Font
 	$OptionsForm.MaximizeBox = $False
@@ -63,30 +63,58 @@ function OptionsMenu {
 	$OptionsFormTextboxSavePath.Location = "5,28"
 	$OptionsFormTextboxSavePath.Enabled = $False
 	$OptionsForm.Controls.Add($OptionsFormTextboxSavePath)
-	$OptionsFormFolderBrowserDialog = New-Object System.Windows.Forms.FolderBrowserDialog
+	$OptionsFormFolderBrowserDialogSavePath = New-Object System.Windows.Forms.FolderBrowserDialog
 	
-	# Browse Button
-	$OptionsFormButtonBrowse = New-Object System.Windows.Forms.Button
-	$OptionsFormButtonBrowse.Size = "75,23"
-	$OptionsFormButtonBrowse.Location = "210,25"
-	$OptionsFormButtonBrowse.Text = "Browse.."
-	$OptionsFormButtonBrowse.Add_Click({
-		if ($OptionsFormFolderBrowserDialog.ShowDialog() -ne "Cancel") {
-			$OptionsFormTextboxSavePath.Text = $OptionsFormFolderBrowserDialog.SelectedPath
+	# Save Path Browse Button
+	$OptionsFormButtonBrowseSavePath = New-Object System.Windows.Forms.Button
+	$OptionsFormButtonBrowseSavePath.Size = "75,23"
+	$OptionsFormButtonBrowseSavePath.Location = "210,25"
+	$OptionsFormButtonBrowseSavePath.Text = "Browse.."
+	$OptionsFormButtonBrowseSavePath.Add_Click({
+		if ($OptionsFormFolderBrowserDialogSavePath.ShowDialog() -ne "Cancel") {
+			$OptionsFormTextboxSavePath.Text = $OptionsFormFolderBrowserDialogSavePath.SelectedPath
 		}
 	})
-	$OptionsForm.Controls.Add($OptionsFormButtonBrowse)
+	$OptionsForm.Controls.Add($OptionsFormButtonBrowseSavePath)
+
+	# Concurrent Jobs Checkbox
+	$OptionsFormCheckboxConcurrentJobs = New-Object System.Windows.Forms.CheckBox
+	$OptionsFormCheckboxConcurrentJobs.Size = "120,23"
+	$OptionsFormCheckboxConcurrentJobs.Location = "5,60"
+	$OptionsFormCheckboxConcurrentJobs.Text = "Concurrent Jobs:"
+	$OptionsForm.Controls.Add($OptionsFormCheckboxConcurrentJobs)
+	$OptionsFormCheckboxConcurrentJobs.add_CheckStateChanged({
+		if ($OptionsFormCheckboxConcurrentJobs.Checked -eq $True) {
+			$OptionsFormNumericUpDownConcurrentJobs.Enabled=$True
+		} else {
+			$OptionsFormNumericUpDownConcurrentJobs.Enabled = $False
+		}
+	})
 	
+	# Concurrent Jobs NumericUpDown
+	$OptionsFormNumericUpDownConcurrentJobs = New-Object System.Windows.Forms.NumericUpDown
+	$OptionsFormNumericUpDownConcurrentJobs.Size = "50,23"
+	$OptionsFormNumericUpDownConcurrentJobs.Location = "130,60"
+	$OptionsFormNumericUpDownConcurrentJobs.Text = "3"
+	$OptionsFormNumericUpDownConcurrentJobs.Enabled = $False
+	$OptionsFormNumericUpDownConcurrentJobs.Maximum = 10
+	$OptionsForm.Controls.Add($OptionsFormNumericUpDownConcurrentJobs)
+
 	# Save Button
 	$OptionsFormButtonSave = New-Object System.Windows.Forms.Button
 	$OptionsFormButtonSave.Size = "75,23"
-	$OptionsFormButtonSave.Location = "5,80"
+	$OptionsFormButtonSave.Location = "5,100"
 	$OptionsFormButtonSave.Text = "Save"
 	$OptionsFormButtonSave.add_Click({
-		if ($OptionsFormCheckboxSavePath.Checked -eq $true) {
+		if ($OptionsFormCheckboxSavePath.Checked -eq $True) {
 			& "$ScriptDirectory\Invoke-LiveResponse.ps1" -Config -SavePath $OptionsFormTextboxSavePath.Text
 		} else {
 			& "$ScriptDirectory\Invoke-LiveResponse.ps1" -Config -SavePath ""
+		}
+		if ($OptionsFormCheckboxConcurrentJobs.Checked -eq $True) {
+			& "$ScriptDirectory\Invoke-LiveResponse.ps1" -Config -ConcurrentJobs $OptionsFormNumericUpDownConcurrentJobs.Text
+		} else {
+			& "$ScriptDirectory\Invoke-LiveResponse.ps1" -Config -ConcurrentJobs ""
 		}
 		$OptionsForm.Close()
 		$OptionsForm.Dispose()
@@ -96,7 +124,7 @@ function OptionsMenu {
 	# Cancel Button
 	$OptionsFormButtonCancel = New-Object System.Windows.Forms.Button
 	$OptionsFormButtonCancel.Size = "75,23"
-	$OptionsFormButtonCancel.Location = "90,80"
+	$OptionsFormButtonCancel.Location = "90,100"
 	$OptionsFormButtonCancel.Text = "Cancel"
 	$OptionsForm.CancelButton = $OptionsFormButtonCancel
 	$OptionsForm.Controls.Add($OptionsFormButtonCancel)
@@ -145,7 +173,7 @@ function AboutMenu {
 	$AboutFormLabelVersion = New-Object System.Windows.Forms.Label
 	$AboutFormLabelVersion.Location = "45,35"
 	$AboutFormLabelVersion.Size = "200,15"
-	$AboutFormLabelVersion.Text = "Version: 1.0.0"
+	$AboutFormLabelVersion.Text = "Version: 1.1"
 	$AboutForm.Controls.Add($AboutFormLabelVersion)
 	
 	# Link Label for Github
