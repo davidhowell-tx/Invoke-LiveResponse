@@ -429,22 +429,21 @@ $MainFormButtonRun.Add_Click({
 		} else {
 			# Initialize selection arrays
 			$ExecutingModuleList = @()
-			$ExecutingTargetList = @()
 			
 			# Add the Selected Modules and Targets to the Arrays, then run the function to Execute Modules
 			for ($i=0; $i -lt $MainFormListboxModules.Items.Count; $i++) {
 				if ($MainFormListboxModules.GetItemChecked($i) -eq $True) {
-					$ExecutingModuleList += $MainFormListboxModules.Items[$i].ToString()
+					$ExecutingModuleList += [String]$MainFormListboxModules.Items[$i].ToString()
 				}
 			}
-			$ExecutingTargetList += $MainFormListboxTargets.Items
+			[String[]]$ExecutingTargetList = $MainFormListboxTargets.Items
 			$MainForm.Close()
 			$MainForm.Dispose()
 			
 			if ($Credentials) {
 				& "$ScriptDirectory\Invoke-LiveResponse.ps1" -ComputerName $ExecutingTargetList -Module $ExecutingModuleList -Credential $Credentials
 			} else {
-				& "$ScriptDirectory\Invoke-LiveResponse.ps1" -ComputerName $ExecutingTargetList -Module $ExecutingModuleList
+                & "$ScriptDirectory\Invoke-LiveResponse.ps1" -ComputerName $ExecutingTargetList -Module $ExecutingModuleList
 			}
 		}
 	}
@@ -465,7 +464,7 @@ $ModuleList = & "$ScriptDirectory\Invoke-LiveResponse.ps1" -ShowModules
 
 # Add the modules to the Module Listbox in the GUI
 ForEach ($Module in $ModuleList) {
-	$MainFormListboxModules.Items.Add($Module.Name) | Out-Null
+	$MainFormListboxModules.Items.Add($Module.Name.Trim(".ps1")) | Out-Null
 }
 
 # Query for a list of available Module Sets
