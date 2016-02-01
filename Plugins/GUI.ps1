@@ -26,6 +26,91 @@ Add-Type -AssemblyName System.Drawing
 # Create a font object to replicate the font used during creation of the form
 $Font = New-Object System.Drawing.Font -ArgumentList "Microsoft Sans Serif", 8.25
 
+#region Create Form for Change Credentials Click
+function ChangeCredentials {
+	[CmdletBinding()]Param(
+		[Parameter(Mandatory=$True)][String]$ScriptDirectory,
+		[Parameter(Mandatory=$True)][System.Drawing.Font]$Font
+	)
+	# ChangeCredentials Form
+	$ChangeCredsForm = New-Object System.Windows.Forms.Form
+	$ChangeCredsForm.FormBorderStyle = "FixedDialog"
+	$ChangeCredsForm.Size = "220,215"
+	$ChangeCredsForm.Text = "Change Credentials"
+	$ChangeCredsForm.Font = $Font
+	$ChangeCredsForm.MaximizeBox = $False
+	$ChangeCredsForm.StartPosition = "CenterScreen"
+	
+	# Prompt Radio Button
+	$ChangeCredsFormRadioButtonPrompt = New-Object System.Windows.Forms.RadioButton
+	$ChangeCredsFormRadioButtonPrompt.Text = "Prompt for Credentials"
+	$ChangeCredsFormRadioButtonPrompt.Location = "5,5"
+	$ChangeCredsFormRadioButtonPrompt.Size = "175,18"
+	$ChangeCredsFormRadioButtonPrompt.Checked = $True
+	$ChangeCredsFormRadioButtonPrompt.Add_Click({
+		if ($ChangeCredsFormRadioButtonPrompt.Checked -eq $True) {
+			$ChangeCredsFormComboboxPlugins.Enabled = $False
+		} else {
+			$ChangeCredsFormComboboxPlugins.Enabled = $True
+		}
+	})
+	$ChangeCredsForm.Controls.Add($ChangeCredsFormRadioButtonPrompt)
+	
+	# Plugin Radio Button
+	$ChangeCredsFormRadioButtonPlugin = New-Object System.Windows.Forms.RadioButton
+	$ChangeCredsFormRadioButtonPlugin.Text = "Use a Plugin"
+	$ChangeCredsFormRadioButtonPlugin.Location = "5,30"
+	$ChangeCredsFormRadioButtonPlugin.Size = "100,18"
+	$ChangeCredsFormRadioButtonPlugin.Checked = $False
+	$ChangeCredsFormRadioButtonPlugin.Add_Click({
+		if ($ChangeCredsFormRadioButtonPlugin.Checked -eq $True) {
+			$ChangeCredsFormComboboxPlugins.Enabled = $True
+		} else {
+			$ChangeCredsFormComboboxPlugins.Enabled = $False
+		}
+	})
+	$ChangeCredsForm.Controls.Add($ChangeCredsFormRadioButtonPlugin)
+	
+	# Plugins Drop Down Box
+	$ChangeCredsFormComboboxPlugins = New-Object System.Windows.Forms.Combobox
+	$ChangeCredsFormComboboxPlugins.Location = "15,55"
+	$ChangeCredsFormComboboxPlugins.Size = "150,21"
+	$ChangeCredsFormComboboxPlugins.DropDownStyle = "DropDownList"
+	$ChangeCredsFormComboboxPlugins.Enabled = $False
+	$ChangeCredsForm.Controls.Add($ChangeCredsFormComboboxPlugins)
+	Get-ChildItem -Path "$ScriptDirectory\Plugins" -Filter "*Credential*.ps1" | ForEach-Object {
+		$ChangeCredsFormComboboxPlugins.Items.Add($_.Name) | Out-Null
+	}
+	
+	# Cancel Button
+	$ChangeCredsFormButtonCancel = New-Object System.Windows.Forms.Button
+	$ChangeCredsFormButtonCancel.Size = "75,23"
+	$ChangeCredsFormButtonCancel.Location = "90,150"
+	$ChangeCredsFormButtonCancel.Text = "Cancel"
+	$ChangeCredsForm.CancelButton = $ChangeCredsFormButtonCancel
+	$ChangeCredsForm.Controls.Add($ChangeCredsFormButtonCancel)
+	
+	# OK Button
+	$ChangeCredsFormButtonOK = New-Object System.Windows.Forms.Button
+	$ChangeCredsFormButtonOK.Size = "75,23"
+	$ChangeCredsFormButtonOK.Location = "10,150"
+	$ChangeCredsFormButtonOK.Text = "OK"
+	$ChangeCredsFormButtonOK.Add_Click({
+		$ChangeCredsForm.Close()
+		$ChangeCredsForm.Dispose()
+	})
+	$ChangeCredsForm.Controls.Add($ChangeCredsFormButtonOK)
+	
+	$ChangeCredsForm.ShowDialog() | Out-Null
+	
+	if ($ChangeCredsFormRadioButtonPlugin.Checked -eq $True) {
+		& "$ScriptDirectory\Plugins\$($ChangeCredsFormComboboxPlugins.SelectedItem)"
+	} else {
+		Get-Credential -Message "Enter credentials for use in Invoke-LiveResponse"
+	}
+}
+#endregion Create Form for Change Credentials Click
+
 #region Create Form for Options Menu
 function OptionsMenu {
 	[CmdletBinding()]Param(
@@ -224,7 +309,7 @@ function AboutMenu {
 	$AboutFormLabelVersion = New-Object System.Windows.Forms.Label
 	$AboutFormLabelVersion.Location = "45,35"
 	$AboutFormLabelVersion.Size = "200,15"
-	$AboutFormLabelVersion.Text = "Version: 1.2"
+	$AboutFormLabelVersion.Text = "Version: 1.3"
 	$AboutForm.Controls.Add($AboutFormLabelVersion)
 	
 	# Link Label for Github
@@ -353,28 +438,29 @@ $MainFormMenuItemCollectionModuleInfo.Add_Click({
 $MainFormContextMenuCollectionModuleInfo.Items.Add($MainFormMenuItemCollectionModuleInfo) | Out-Null
 $MainFormListboxCollectionModules.ContextMenuStrip=$MainFormContextMenuCollectionModuleInfo
 
-# "Collection Group" Label
-$MainFormLabelCollectionGroup = New-Object System.Windows.Forms.Label
-$MainFormLabelCollectionGroup.Text = "Collection Group:"
-$MainFormLabelCollectionGroup.Location = "5,250"
-$MainFormLabelCollectionGroup.Size = "130,15"
-$MainForm.Controls.Add($MainFormLabelCollectionGroup)
+# "Module Group" Label
+$MainFormLabelModuleGroup = New-Object System.Windows.Forms.Label
+$MainFormLabelModuleGroup.Text = "Module Group:"
+$MainFormLabelModuleGroup.Location = "5,250"
+$MainFormLabelModuleGroup.Size = "130,15"
+$MainForm.Controls.Add($MainFormLabelModuleGroup)
 
-# Drop Down List to pick Collection Group
-$MainFormComboboxCollectionGroups = New-Object System.Windows.Forms.Combobox
-$MainFormComboboxCollectionGroups.Location = "10,265"
-$MainFormComboboxCollectionGroups.Size = "212,21"
-$MainFormComboboxCollectionGroups.Add_SelectedIndexChanged({
+# Drop Down List to pick Module Group
+$MainFormComboboxModuleGroups = New-Object System.Windows.Forms.Combobox
+$MainFormComboboxModuleGroups.Location = "10,265"
+$MainFormComboboxModuleGroups.Size = "212,21"
+$MainFormComboboxModuleGroups.DropDownStyle = "DropDownList"
+$MainFormComboboxModuleGroups.Add_SelectedIndexChanged({
 	# First, uncheck all collection modules
 	for ($i=0; $i -lt $MainFormListboxCollectionModules.Items.Count; $i++) {
 		$MainFormListboxCollectionModules.SetItemChecked($i, $False)
 	}
 	
 	# Now select all of the collection modules included in the selected collection group
-	if ($MainFormComboboxCollectionGroups.SelectedItem -ne $null -and $MainFormComboboxCollectionGroups -ne "") {
-		ForEach ($CollectionGroup in $CollectionGroupList) {
-			if ($CollectionGroup.Name -eq $MainFormComboboxCollectionGroups.SelectedItem) {
-				$CollectionModules = $CollectionGroup.CollectionModules -split ", "
+	if ($MainFormComboboxModuleGroups.SelectedItem -ne $null -and $MainFormComboboxModuleGroups -ne "") {
+		ForEach ($ModuleGroup in $ModuleGroupList) {
+			if ($ModuleGroup.Name -eq $MainFormComboboxModuleGroups.SelectedItem) {
+				$CollectionModules = $ModuleGroup.CollectionModules -split ", "
 				ForEach ($CollectionModule in $CollectionModules) {
 					for ($i=0; $i -lt $MainFormListboxCollectionModules.Items.Count; $i++) {
 						if ($MainFormListboxCollectionModules.Items[$i] -eq $CollectionModule) { 
@@ -386,7 +472,7 @@ $MainFormComboboxCollectionGroups.Add_SelectedIndexChanged({
 		}
 	}
 })
-$MainForm.Controls.Add($MainFormComboboxCollectionGroups)
+$MainForm.Controls.Add($MainFormComboboxModuleGroups)
 
 # "Analysis Modules" Label
 $MainFormLabelAnalysisModules = New-Object System.Windows.Forms.Label
@@ -527,11 +613,7 @@ $MainFormButtonCredential.Location="510,270"
 $MainFormButtonCredential.Size="120,23"
 # Run the Invoke-LiveResponseCredentials script when this button is clicked
 $MainFormButtonCredential.Add_Click({
-	if (Test-Path -Path "$ScriptDirectory\Plugins\Credentials.ps1") {
-		$Credentials = & "$ScriptDirectory\Plugins\Credentials.ps1"
-	} else {
-		$Credentials = Get-Credential -Message "Enter credentials for Invoke-LiveResponse"
-	}
+	[System.Management.Automation.PSCredential]$Credentials = ChangeCredentials -ScriptDirectory $ScriptDirectory -Font $Font
 	# Update the GUI with the new credentials
 	if ($Credentials -ne $null -and $Credentials -ne "") {
 		$MainFormLabelUsername.Text=$Credentials.Username
@@ -576,7 +658,7 @@ $MainFormButtonRun.Add_Click({
 			$MainForm.Dispose()
 			
 			if ($Credentials) {
-				& "$ScriptDirectory\Invoke-LiveResponse.ps1" -ComputerName $ExecutingTargetList -CollectionModule $ExecutingCollectionModuleList -Credential $Credentials
+				& "$ScriptDirectory\Invoke-LiveResponse.ps1" -ComputerName $ExecutingTargetList -CollectionModule $ExecutingCollectionModuleList -PSCredential $Credentials
 			} else {
 				& "$ScriptDirectory\Invoke-LiveResponse.ps1" -ComputerName $ExecutingTargetList -CollectionModule $ExecutingCollectionModuleList
 			}
@@ -611,12 +693,12 @@ ForEach ($AnalysisModule in $AnalysisModuleList) {
 }
 
 # Query for a list of available collection groups
-$CollectionGroupList = & "$ScriptDirectory\Invoke-LiveResponse.ps1" -ShowCollectionGroups
+$ModuleGroupList = & "$ScriptDirectory\Invoke-LiveResponse.ps1" -ShowModuleGroups
 
 # Add the collection groups to the collection group combobox in the GUI
-ForEach ($CollectionGroup in $CollectionGroupList) {
-	$MainFormComboboxCollectionGroups.Items.Add($CollectionGroup.Name) | Out-Null
+ForEach ($ModuleGroup in $ModuleGroupList) {
+	$MainFormComboboxModuleGroups.Items.Add($ModuleGroup.Name) | Out-Null
 }
 
 # Launch the GUI
-$MainForm.ShowDialog() 
+$MainForm.ShowDialog() | Out-Null
