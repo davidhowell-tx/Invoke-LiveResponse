@@ -5,7 +5,7 @@
 	
 .NOTES
 	Author: David Howell
-	Last Modified: 01/05/2016
+	Last Modified: 02/01/2016
 
 OUTPUT csv
 #>
@@ -21,13 +21,12 @@ $UnicodeEncoding = New-Object System.Text.UnicodeEncoding
 $USBDeviceArray = @()
 Get-ChildItem HKLM:\SYSTEM\CurrentControlSet\Enum\USBSTOR | Select-Object -ExpandProperty PSChildName | ForEach-Object {
 	if ($_ -match "Disk&Ven_([^&]+)?&Prod_([^&]+)?&Rev_([^&]+)?") {
-		$TempObject = New-Object PSObject
-		Add-Member -InputObject $TempObject -MemberType NoteProperty -Name "Vendor" -Value $matches[1]
-		Add-Member -InputObject $TempObject -MemberType NoteProperty -Name "Product" -Value $matches[2]
-		Add-Member -InputObject $TempObject -MemberType NoteProperty -Name "Version" -Value $matches[3]
-		Add-Member -InputObject $TempObject -MemberType NoteProperty -Name "USBSTOR_FullName" -Value $matches[0]
-		$USBDeviceArray += $TempObject
-		Remove-Variable -Name TempObject -ErrorAction SilentlyContinue
+		$USBDeviceArray += [PSCustomObject]@{
+			Vendor = $matches[1]
+			Product = $matches[2]
+			Version = $matches[3]
+			USBSTOR_FullName = $matches[0]
+		}
 	}
 }
 

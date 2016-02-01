@@ -4,7 +4,7 @@
 
 .NOTES
 	Author: David Howell
-	Last Modified: 12/11/2015
+	Last Modified: 2/1/2016
 
 OUTPUT csv
 #>
@@ -15,8 +15,7 @@ if (Get-Command Get-SmbSession -ErrorAction SilentlyContinue) {
 	} Catch {
 	}
 } else {
-	# Create an array for our custom objects
-	$SessionsArray = @()
+
 	# Get a list of sessions
 	$Sessions = net session | Select-String -Pattern "^\\.+"
 	
@@ -54,8 +53,6 @@ if (Get-Command Get-SmbSession -ErrorAction SilentlyContinue) {
 				}
 			}
 		}
-		$SessionsArray += $CustomObject
+		$CustomObject
 	}
-	
-	return $SessionsArray
 }
